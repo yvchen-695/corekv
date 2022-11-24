@@ -447,12 +447,13 @@ func (s *SkipListIterator) Valid() bool { return s.n != nil }
 
 // Key returns the key at the current position.
 func (s *SkipListIterator) Key() []byte {
-	//implement me here
+	return s.n.key(s.list.arena)
 }
 
 // Value returns value.
 func (s *SkipListIterator) Value() ValueStruct {
-	//implement me here
+	valOffset, valSize := s.n.getValueOffset()
+	return s.list.arena.getVal(valOffset, valSize)
 }
 
 // ValueUint64 returns the uint64 value of the current node.
@@ -474,17 +475,25 @@ func (s *SkipListIterator) Prev() {
 
 // 找到 >= target 的第一个节点
 func (s *SkipListIterator) Seek(target []byte) {
-	//implement me here
+	targetNode, exist := s.list.findNear(target, false, true)
+	if !exist {
+		return
+	}
+	s.n = targetNode
 }
 
 // 找到 <= target 的第一个节点
 func (s *SkipListIterator) SeekForPrev(target []byte) {
-	//implement me here
+	targetNode, exist := s.list.findNear(target, true, true)
+	if !exist {
+		return
+	}
+	s.n = targetNode
 }
 
-//定位到链表的第一个节点
+// 定位到链表的第一个节点
 func (s *SkipListIterator) SeekToFirst() {
-	//implement me here
+	s.n = s.list.getHead()
 }
 
 // SeekToLast seeks position at the last entry in list.
@@ -502,6 +511,7 @@ type UniIterator struct {
 }
 
 // FastRand is a fast thread local random function.
+//
 //go:linkname FastRand runtime.fastrand
 func FastRand() uint32
 
